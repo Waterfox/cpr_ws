@@ -16,8 +16,4 @@
       <remap from="gps/fix" to="navsat/fix"/>
   </node>
 
-  <include file="$(find waypoint_loader)/launch/waypoint_loader.launch"/>
-
-    <include file="$(find waypoint_follower)/launch/pure_pursuit.launch"/>
-  
 </launch>

@@ -64,7 +64,7 @@ void PurePursuit::callbackFromWayPoints(const styx_msgs::LaneConstPtr &msg)
 {
   current_waypoints_.setPath(*msg);
   waypoint_set_ = true;
-  // ROS_INFO_STREAM("waypoint subscribed");
+  ROS_INFO_STREAM("waypoint subscribed");
 }
 
 double PurePursuit::getCmdVelocity(int waypoint) const
@@ -284,41 +284,66 @@ geometry_msgs::Twist PurePursuit::calcTwist(double curvature, double cmd_velocit
   return twist;
 }
 
-void PurePursuit::getNextWaypoint()
-{
-  int path_size = static_cast<int>(current_waypoints_.getSize());
+// void PurePursuit::getNextWaypoint()
+// {
+//   int path_size = static_cast<int>(current_waypoints_.getSize());
+//
+//   // if waypoints are not given, do nothing.
+//   if (path_size == 0)
+//   {
+//     num_of_next_waypoint_ = -1;
+//     return;
+//   }
+//
+//   // look for the next waypoint.
+//   for (int i = num_of_next_waypoint_ ; i < path_size; i++)
+//   {
+//     // if search waypoint is the last
+//     if (i == (path_size - 1))
+//     {
+//       ROS_INFO("search waypoint is the last");
+//       num_of_next_waypoint_ = i;
+//       return;
+//     }
+//
+//     // if there exists an effective waypoint
+//     if (getPlaneDistance(current_waypoints_.getWaypointPosition(i), current_pose_.pose.position) > lookahead_distance_)
+//     {
+//       num_of_next_waypoint_ = i;
+//       //ROS_ERROR_STREAM("wp = " << i << " dist = " << getPlaneDistance(current_waypoints_.getWaypointPosition(i), current_pose_.pose.position) );
+//       return;
+//     }
+//   }
+//
+//   // if this program reaches here , it means we lost the waypoint!
+//   num_of_next_waypoint_ = -1;
+//   return;
+// }
 
-  // if waypoints are not given, do nothing.
-  if (path_size == 0)
-  {
-    num_of_next_waypoint_ = -1;
-    return;
-  }
+void PurePursuit::getNextWaypoint(){
+    int path_size = static_cast<int>(current_waypoints_.getSize());
 
-  // look for the next waypoint.
-  for (int i = 0; i < path_size; i++)
-  {
-    // if search waypoint is the last
-    if (i == (path_size - 1))
+    // if waypoints are not given, do nothing.
+    if (path_size == 0)
+    {
+      num_of_next_waypoint_ = -1;
+      return;
+    }
+
+    if (getPlaneDistance(current_waypoints_.getWaypointPosition(num_of_next_waypoint_), current_pose_.pose.position) < waypoint_tolerance_)
+    {
+      num_of_next_waypoint_ = num_of_next_waypoint_ + 1;
+    }
+
+    if (num_of_next_waypoint_ == (path_size))
     {
       ROS_INFO("search waypoint is the last");
-      num_of_next_waypoint_ = i;
+      num_of_next_waypoint_ = 0;
       return;
     }
 
-    // if there exists an effective waypoint
-    if (getPlaneDistance(current_waypoints_.getWaypointPosition(i), current_pose_.pose.position) > lookahead_distance_)
-    {
-      num_of_next_waypoint_ = i;
-      //ROS_ERROR_STREAM("wp = " << i << " dist = " << getPlaneDistance(current_waypoints_.getWaypointPosition(i), current_pose_.pose.position) );
-      return;
-    }
+    return;
   }
-
-  // if this program reaches here , it means we lost the waypoint!
-  num_of_next_waypoint_ = -1;
-  return;
-}
 
 // geometry_msgs::TwistStamped PurePursuit::outputZero() const
 geometry_msgs::Twist PurePursuit::outputZero() const

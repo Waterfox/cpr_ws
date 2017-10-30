@@ -58,6 +58,8 @@ int main(int argc, char **argv)
   // publish topic
   // ros::Publisher cmd_velocity_publisher = nh.advertise<geometry_msgs::TwistStamped>("cmd_vel", PUB_SUB_QUEUE_SIZE);
   ros::Publisher cmd_velocity_publisher = nh.advertise<geometry_msgs::Twist>("cmd_vel", PUB_SUB_QUEUE_SIZE);
+  ros::Publisher next_wp_publisher = nh.advertise<geometry_msgs::PointStamped>("next_wp", PUB_SUB_QUEUE_SIZE);
+  //ros::Publisher next_wp_pose_publisher = nh.advertise<geometry_msgs::Pose>("next_wp_pose", PUB_SUB_QUEUE_SIZE);
   ROS_INFO("set subscriber...");
   // ---Commented by RE for better topics---
   // subscribe topic
@@ -80,6 +82,8 @@ int main(int argc, char **argv)
   {
     ros::spinOnce();
     cmd_velocity_publisher.publish(pp.go());
+    next_wp_publisher.publish(pp.getPointOfNextWaypoint());
+    //next_wp_pose_publisher.publish(pp.getPoseOfNextWaypoint());
     loop_rate.sleep();
   }
 

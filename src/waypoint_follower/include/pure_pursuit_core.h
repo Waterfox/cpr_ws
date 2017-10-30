@@ -74,6 +74,7 @@ private:
   int num_of_next_waypoint_;
   geometry_msgs::Point position_of_next_target_;
   double lookahead_distance_;
+  double waypoint_tolerance_;
 
   geometry_msgs::PoseStamped current_pose_;
   // geometry_msgs::TwistStamped current_velocity_;
@@ -99,10 +100,10 @@ public:
     , KAPPA_MIN_(1/RADIUS_MAX_)
     , linear_interpolate_(linear_interpolate_mode)
     , param_flag_(0)
-    , const_lookahead_distance_(4.0)
+    , const_lookahead_distance_(1.0)
     , initial_velocity_(5.0)
     , lookahead_distance_calc_ratio_(2.0)
-    , minimum_lookahead_distance_(6.0)
+    , minimum_lookahead_distance_(0.5)
     , displacement_threshold_(0.2)
     , relative_angle_threshold_(5.)
     , waypoint_set_(false)
@@ -110,6 +111,7 @@ public:
     , velocity_set_(false)
     , num_of_next_waypoint_(-1)
     , lookahead_distance_(0)
+    , waypoint_tolerance_(0.5)
   {
   }
   ~PurePursuit()
@@ -123,9 +125,19 @@ public:
   void callbackFromOdom(const nav_msgs::OdometryConstPtr &msg);
 
   // for debug
-  geometry_msgs::Point getPoseOfNextWaypoint() const
+  geometry_msgs::PointStamped getPointOfNextWaypoint() const
   {
-    return current_waypoints_.getWaypointPosition(num_of_next_waypoint_);
+    geometry_msgs::Point wp_point = current_waypoints_.getWaypointPosition(num_of_next_waypoint_);
+    geometry_msgs::PointStamped wp_point_stamped;
+    wp_point_stamped.point = wp_point;
+    wp_point_stamped.header.frame_id = "odom";
+    wp_point_stamped.header.stamp = ros::Time::now();
+
+    return wp_point_stamped;
+  }
+  geometry_msgs::Pose getPoseOfNextWaypoint() const
+  {
+    return current_waypoints_.getWaypointPose(num_of_next_waypoint_);
   }
   geometry_msgs::Point getPoseOfNextTarget() const
   {

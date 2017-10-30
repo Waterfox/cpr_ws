@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
     <node pkg="waypoint_loader" type="waypoint_loader.py" name="waypoint_loader">
-        <param name="path" value="$(find waypoint_loader)/data/wp_yaw_const.csv" />
-        <param name="velocity" value="1.5" />
+        <param name="path" value="$(find waypoint_loader)/data/churchlot_with_cars.csv" />
+        <param name="velocity" value="2.0" />
     </node>
 </launch>
