@@ -28,7 +28,7 @@
  *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "libwaypoint_follower.h"
+#include "waypoint_follower/libwaypoint_follower.h"
 
 int WayPoints::getSize() const
 {
@@ -172,7 +172,7 @@ double getRelativeAngle(geometry_msgs::Pose waypoint_pose, geometry_msgs::Pose v
 }
 
 // get closest waypoint from current pose
-int getClosestWaypoint(const styx_msgs::Lane &current_path, geometry_msgs::Pose current_pose)
+int getClosestWaypoint(const autoware_msgs::lane &current_path, geometry_msgs::Pose current_pose)
 {
   WayPoints wp;
   wp.setPath(current_path);
