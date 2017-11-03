@@ -44,10 +44,11 @@ PurePursuitNode::PurePursuitNode()
   , current_linear_velocity_(0)
   , command_linear_velocity_(0)
   , param_flag_(-1)
-  , const_lookahead_distance_(4.0)
+  , const_lookahead_distance_(2.0)
   , const_velocity_(5.0)
-  , lookahead_distance_ratio_(2.0)
+  , lookahead_distance_ratio_(0.5)
   , minimum_lookahead_distance_(6.0)
+  , waypoint_tolerance_(0.35)
 {
   initForROS();
 
@@ -66,13 +67,15 @@ void PurePursuitNode::initForROS()
   private_nh_.param("is_linear_interpolation", is_linear_interpolation_, bool(true));
   // ROS_INFO_STREAM("is_linear_interpolation : " << is_linear_interpolation_);
   private_nh_.param("publishes_for_steering_robot", publishes_for_steering_robot_, bool(false));
-  private_nh_.param("vehicle_info/wheel_base", wheel_base_, double(2.7));
+  private_nh_.param("vehicle_info/wheel_base", wheel_base_, double(0.65));
 
   // setup subscriber
-  sub1_ = nh_.subscribe("final_waypoints", 10, &PurePursuitNode::callbackFromWayPoints, this);
-  sub2_ = nh_.subscribe("current_pose", 10, &PurePursuitNode::callbackFromCurrentPose, this);
+  sub1_ = nh_.subscribe("base_waypoints", 10, &PurePursuitNode::callbackFromWayPoints, this);
+  // sub1_ = nh_.subscribe("final_waypoints", 10, &PurePursuitNode::callbackFromWayPoints, this);
+  sub2_ = nh_.subscribe("/odometry/filtered_2", 10, &PurePursuitNode::callbackFromOdom, this);
+  // sub2_ = nh_.subscribe("current_pose", 10, &PurePursuitNode::callbackFromCurrentPose, this);
   sub3_ = nh_.subscribe("config/waypoint_follower", 10, &PurePursuitNode::callbackFromConfig, this);
-  sub4_ = nh_.subscribe("current_velocity", 10, &PurePursuitNode::callbackFromCurrentVelocity, this);
+  // sub4_ = nh_.subscribe("current_velocity", 10, &PurePursuitNode::callbackFromCurrentVelocity, this);
 
   // setup publisher
   pub1_ = nh_.advertise<geometry_msgs::TwistStamped>("twist_raw", 10);
@@ -171,6 +174,18 @@ void PurePursuitNode::callbackFromConfig(const autoware_msgs::ConfigWaypointFoll
   lookahead_distance_ratio_ = config->lookahead_ratio;
   minimum_lookahead_distance_ = config->minimum_lookahead_distance;
   is_config_set_ = true;
+}
+
+void PurePursuitNode::callbackFromOdom(const nav_msgs::OdometryConstPtr &msg)
+{
+  // current_pose_.pose = msg->pose.pose;
+  // current_pose_.header = msg->header;
+  pp_.setCurrentPose(msg->pose);
+  is_pose_set_ = true;
+
+  current_linear_velocity_ = msg->twist.linear.x;
+  pp_.setCurrentVelocity(current_linear_velocity_);
+  is_velocity_set_ = true;
 }
 
 void PurePursuitNode::callbackFromCurrentPose(const geometry_msgs::PoseStampedConstPtr &msg)

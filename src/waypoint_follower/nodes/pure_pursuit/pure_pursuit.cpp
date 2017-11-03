@@ -37,7 +37,7 @@ PurePursuit::PurePursuit()
   : RADIUS_MAX_(9e10)
   , KAPPA_MIN_(1 / RADIUS_MAX_)
   , is_linear_interpolation_(false)
-  , next_waypoint_number_(-1)
+  , next_waypoint_number_(0)
   , lookahead_distance_(0)
   , current_linear_velocity_(0)
 {
@@ -195,40 +195,64 @@ bool PurePursuit::interpolateNextTarget(int next_waypoint, geometry_msgs::Point 
   }
 }
 
-void PurePursuit::getNextWaypoint()
-{
-  int path_size = static_cast<int>(current_waypoints_.size());
+// void PurePursuit::getNextWaypoint()
+// {
+//   int path_size = static_cast<int>(current_waypoints_.size());
+//
+//   // if waypoints are not given, do nothing.
+//   if (path_size == 0)
+//   {
+//     next_waypoint_number_ = -1;
+//     return;
+//   }
+//
+//   // look for the next waypoint.
+//   for (int i = 0; i < path_size; i++)
+//   {
+//     // if search waypoint is the last
+//     if (i == (path_size - 1))
+//     {
+//       ROS_INFO("search waypoint is the last");
+//       next_waypoint_number_ = i;
+//       return;
+//     }
+//
+//     // if there exists an effective waypoint
+//     if (getPlaneDistance(current_waypoints_.at(i).pose.pose.position, current_pose_.position) > lookahead_distance_)
+//     {
+//       next_waypoint_number_ = i;
+//       return;
+//     }
+//   }
+//
+//   // if this program reaches here , it means we lost the waypoint!
+//   next_waypoint_number_ = -1;
+//   return;
+// }
 
-  // if waypoints are not given, do nothing.
-  if (path_size == 0)
-  {
-    next_waypoint_number_ = -1;
-    return;
-  }
+void PurePursuit::getNextWaypoint(){
+    int path_size = static_cast<int>(current_waypoints_.size());
 
-  // look for the next waypoint.
-  for (int i = 0; i < path_size; i++)
-  {
-    // if search waypoint is the last
-    if (i == (path_size - 1))
+    // if waypoints are not given, do nothing.
+    if (path_size == 0)
+    {
+      next_waypoint_number_ = -1;
+      return;
+    }
+
+    if (getPlaneDistance(current_waypoints_.at(next_waypoint_number_).pose.position, current_pose_.position) < waypoint_tolerance_)
+    {
+      next_waypoint_number_ = next_waypoint_number_ + 1;
+    }
+
+    if (next_waypoint_number_ == (path_size-1))
     {
       ROS_INFO("search waypoint is the last");
-      next_waypoint_number_ = i;
-      return;
+      next_waypoint_number_ = 0;
     }
 
-    // if there exists an effective waypoint
-    if (getPlaneDistance(current_waypoints_.at(i).pose.pose.position, current_pose_.position) > lookahead_distance_)
-    {
-      next_waypoint_number_ = i;
-      return;
-    }
+    return;
   }
-
-  // if this program reaches here , it means we lost the waypoint!
-  next_waypoint_number_ = -1;
-  return;
-}
 
 bool PurePursuit::canGetCurvature(double *output_kappa)
 {

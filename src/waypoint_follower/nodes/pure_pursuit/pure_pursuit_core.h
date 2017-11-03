@@ -36,7 +36,7 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <visualization_msgs/Marker.h>
-
+#include <nav_msgs/Odometry.h>
 // User defined includes
 #include "autoware_msgs/ConfigWaypointFollower.h"
 #include "autoware_msgs/lane.h"
@@ -96,12 +96,14 @@ private:
   double const_velocity_;            // km/h
   double lookahead_distance_ratio_;
   double minimum_lookahead_distance_;  // the next waypoint must be outside of this threshold.
+  double waypoint_tolerance_; // how far to a waypoint?
 
   // callbacks
   void callbackFromConfig(const autoware_msgs::ConfigWaypointFollowerConstPtr &config);
   void callbackFromCurrentPose(const geometry_msgs::PoseStampedConstPtr &msg);
   void callbackFromCurrentVelocity(const geometry_msgs::TwistStampedConstPtr &msg);
   void callbackFromWayPoints(const autoware_msgs::laneConstPtr &msg);
+  void callbackFromOdom(const nav_msgs::OdometryConstPtr &msg);
 
   // initializer
   void initForROS();

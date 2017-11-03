@@ -6,7 +6,7 @@ import math
 
 from geometry_msgs.msg import Quaternion
 
-from styx_msgs.msg import Lane, Waypoint
+from waypoint_follower.msg import Lane, Waypoint
 
 import tf
 import rospy
