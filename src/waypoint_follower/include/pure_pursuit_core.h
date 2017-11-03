@@ -109,7 +109,7 @@ public:
     , waypoint_set_(false)
     , pose_set_(false)
     , velocity_set_(false)
-    , num_of_next_waypoint_(-1)
+    , num_of_next_waypoint_(0)
     , lookahead_distance_(0)
     , waypoint_tolerance_(0.5)
   {
