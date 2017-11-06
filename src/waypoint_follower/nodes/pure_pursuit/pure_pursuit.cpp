@@ -36,7 +36,7 @@ namespace waypoint_follower
 PurePursuit::PurePursuit()
   : RADIUS_MAX_(9e10)
   , KAPPA_MIN_(1 / RADIUS_MAX_)
-  , is_linear_interpolation_(false)
+  , is_linear_interpolation_(true)
   , next_waypoint_number_(0)
   , lookahead_distance_(0)
   , current_linear_velocity_(0)
@@ -240,7 +240,7 @@ void PurePursuit::getNextWaypoint(){
       return;
     }
 
-    if (getPlaneDistance(current_waypoints_.at(next_waypoint_number_).pose.position, current_pose_.position) < waypoint_tolerance_)
+    if (getPlaneDistance(current_waypoints_.at(next_waypoint_number_).pose.pose.position, current_pose_.position) < 0.35) //hardcoded waypoint tol
     {
       next_waypoint_number_ = next_waypoint_number_ + 1;
     }

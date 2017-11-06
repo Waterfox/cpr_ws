@@ -30,6 +30,7 @@
 
 #include <ros/ros.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <geometry_msgs/Twist.h>
 
 #include <iostream>
 
@@ -62,7 +63,7 @@ void TwistCmdCallback(const geometry_msgs::TwistStampedConstPtr &msg)
   double omega = msg->twist.angular.z;
 
   if(fabs(omega) < ERROR){
-    g_twist_pub.publish(*msg);
+    g_twist_pub.publish(msg->twist); //changed
     return;
   }
 
@@ -88,7 +89,13 @@ void TwistCmdCallback(const geometry_msgs::TwistStampedConstPtr &msg)
   tp.twist.angular.z = lowpass_angular_z;
 
   ROS_INFO("v: %f -> %f",v,tp.twist.linear.x);
-  g_twist_pub.publish(tp);
+  geometry_msgs::Twist tcpr = tp.twist;
+  g_twist_pub.publish(tcpr);
+
+
+
+  // cpr_twist_pub.publish(tcpr);
+
 
 }
 } // namespace
@@ -102,7 +109,9 @@ int main(int argc, char **argv)
 
     ros::Subscriber twist_sub = nh.subscribe("twist_raw", 1, TwistCmdCallback);
     ros::Subscriber config_sub = nh.subscribe("config/twist_filter", 10, configCallback);
-    g_twist_pub = nh.advertise<geometry_msgs::TwistStamped>("twist_cmd", 1000);
+    // g_twist_pub = nh.advertise<geometry_msgs::TwistStamped>("twist_cmd", 1000);
+    g_twist_pub = nh.advertise<geometry_msgs::Twist>("cmd_vel", 50);
+    // cpr_twist_pub = nh.advertise<geometry_msgs::Twist>("cmd_vel", 50);
 
     ros::spin();
     return 0;

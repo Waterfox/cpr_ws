@@ -14,6 +14,7 @@
       <remap from="odometry/filtered" to=""/>
     -->
       <remap from="gps/fix" to="navsat/fix"/>
+      <!-- <remap from="navsat/fix" to="gps/fix"/> -->
   </node>
 
 </launch>

@@ -6,7 +6,7 @@ import math
 
 from geometry_msgs.msg import Quaternion
 
-from waypoint_follower.msg import Lane, Waypoint
+from autoware_msgs.msg import lane, waypoint
 
 import tf
 import rospy
@@ -20,15 +20,18 @@ class WaypointLoader(object):
     def __init__(self):
         rospy.init_node('waypoint_loader', log_level=rospy.DEBUG)
 
-        self.pub = rospy.Publisher('/base_waypoints', Lane, queue_size=1, latch=True)
+        self.pub = rospy.Publisher('/base_waypoints', lane, queue_size=1, latch=True)
 
         # Note: This converts from km/h to m/s, and the speed is
         # 40km/h in the launch file for the sim, but the instructions
         # are to cap to 10mph on Carla, and the value in the launch
         # file for Carla is 10km/h. The view on Slack seems to be that
         # it's best to stick to 10 km/h.
-        self.velocity = self.kmph2mps(rospy.get_param('~velocity'))
-        self.new_waypoint_loader(rospy.get_param('~path'))
+        r = rospy.Rate(1)
+        while not rospy.is_shutdown(): #Don't need this loop/?
+            self.velocity = self.kmph2mps(rospy.get_param('~velocity'))
+            self.new_waypoint_loader(rospy.get_param('~path'))
+            r.sleep()
         rospy.spin()
 
     def new_waypoint_loader(self, path):
@@ -50,7 +53,7 @@ class WaypointLoader(object):
         with open(fname) as wfile:
             reader = csv.DictReader(wfile, CSV_HEADER)
             for wp in reader:
-                p = Waypoint()
+                p = waypoint()
                 p.pose.pose.position.x = float(wp['x'])
                 p.pose.pose.position.y = float(wp['y'])
                 p.pose.pose.position.z = float(wp['z'])
@@ -77,11 +80,11 @@ class WaypointLoader(object):
         return waypoints
 
     def publish(self, waypoints):
-        lane = Lane()
-        lane.header.frame_id = '/world'
-        lane.header.stamp = rospy.Time(0)
-        lane.waypoints = waypoints
-        self.pub.publish(lane)
+        lane1 = lane()
+        lane1.header.frame_id = '/world'
+        lane1.header.stamp = rospy.Time(0)
+        lane1.waypoints = waypoints
+        self.pub.publish(lane1)
 
 
 if __name__ == '__main__':

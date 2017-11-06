@@ -32,7 +32,7 @@
 
 namespace waypoint_follower
 {
-const std::string MAP_FRAME = "map";
+const std::string MAP_FRAME = "odom";
 // display the next waypoint by markers.
 visualization_msgs::Marker displayNextWaypoint(geometry_msgs::Point position)
 {

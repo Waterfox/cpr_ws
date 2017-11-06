@@ -40,14 +40,14 @@ PurePursuitNode::PurePursuitNode()
   , is_waypoint_set_(false)
   , is_pose_set_(false)
   , is_velocity_set_(false)
-  , is_config_set_(false)
+  , is_config_set_(true) // changing for now
   , current_linear_velocity_(0)
   , command_linear_velocity_(0)
   , param_flag_(-1)
   , const_lookahead_distance_(2.0)
   , const_velocity_(5.0)
   , lookahead_distance_ratio_(0.5)
-  , minimum_lookahead_distance_(6.0)
+  , minimum_lookahead_distance_(0.5)
   , waypoint_tolerance_(0.35)
 {
   initForROS();
@@ -70,7 +70,7 @@ void PurePursuitNode::initForROS()
   private_nh_.param("vehicle_info/wheel_base", wheel_base_, double(0.65));
 
   // setup subscriber
-  sub1_ = nh_.subscribe("base_waypoints", 10, &PurePursuitNode::callbackFromWayPoints, this);
+  sub1_ = nh_.subscribe("/base_waypoints", 1, &PurePursuitNode::callbackFromWayPoints, this);
   // sub1_ = nh_.subscribe("final_waypoints", 10, &PurePursuitNode::callbackFromWayPoints, this);
   sub2_ = nh_.subscribe("/odometry/filtered_2", 10, &PurePursuitNode::callbackFromOdom, this);
   // sub2_ = nh_.subscribe("current_pose", 10, &PurePursuitNode::callbackFromCurrentPose, this);
@@ -98,6 +98,10 @@ void PurePursuitNode::run()
     if (!is_pose_set_ || !is_waypoint_set_ || !is_velocity_set_ || !is_config_set_)
     {
       ROS_WARN("Necessary topics are not subscribed yet ... ");
+      if (!is_pose_set_ ) {ROS_WARN("post not set");}
+      if (!is_waypoint_set_ ) {ROS_WARN("waypoint not set");}
+      if (!is_velocity_set_ ) {ROS_WARN("velocity not set");}
+      if (!is_config_set_ ) {ROS_WARN("config not set");}
       loop_rate.sleep();
       continue;
     }
@@ -116,9 +120,9 @@ void PurePursuitNode::run()
     pub15_.publish(displayTrajectoryCircle(
         waypoint_follower::generateTrajectoryCircle(pp_.getPoseOfNextTarget(), pp_.getCurrentPose())));
 
-    is_pose_set_ = false;
-    is_velocity_set_ = false;
-    is_waypoint_set_ = false;
+    // is_pose_set_ = false;
+    // is_velocity_set_ = false;
+    // is_waypoint_set_ = false;
     loop_rate.sleep();
   }
 }
@@ -180,26 +184,29 @@ void PurePursuitNode::callbackFromOdom(const nav_msgs::OdometryConstPtr &msg)
 {
   // current_pose_.pose = msg->pose.pose;
   // current_pose_.header = msg->header;
-  pp_.setCurrentPose(msg->pose);
+  geometry_msgs::PoseStamped input_pose;
+  input_pose.pose = msg->pose.pose;
+  input_pose.header = msg->header;
+  pp_.setCurrentPose(input_pose);
   is_pose_set_ = true;
 
-  current_linear_velocity_ = msg->twist.linear.x;
-  pp_.setCurrentVelocity(current_linear_velocity_);
+  double linear_vel = msg->twist.twist.linear.x;
+  pp_.setCurrentVelocity(linear_vel);
   is_velocity_set_ = true;
 }
 
-void PurePursuitNode::callbackFromCurrentPose(const geometry_msgs::PoseStampedConstPtr &msg)
-{
-  pp_.setCurrentPose(msg);
-  is_pose_set_ = true;
-}
+// void PurePursuitNode::callbackFromCurrentPose(const geometry_msgs::PoseStampedConstPtr &msg)
+// {
+//   pp_.setCurrentPose(msg);
+//   is_pose_set_ = true;
+// }
 
-void PurePursuitNode::callbackFromCurrentVelocity(const geometry_msgs::TwistStampedConstPtr &msg)
-{
-  current_linear_velocity_ = msg->twist.linear.x;
-  pp_.setCurrentVelocity(current_linear_velocity_);
-  is_velocity_set_ = true;
-}
+// void PurePursuitNode::callbackFromCurrentVelocity(const geometry_msgs::TwistStampedConstPtr &msg)
+// {
+//   current_linear_velocity_ = msg->twist.linear.x;
+//   pp_.setCurrentVelocity(current_linear_velocity_);
+//   is_velocity_set_ = true;
+// }
 
 void PurePursuitNode::callbackFromWayPoints(const autoware_msgs::laneConstPtr &msg)
 {
@@ -207,9 +214,10 @@ void PurePursuitNode::callbackFromWayPoints(const autoware_msgs::laneConstPtr &m
     command_linear_velocity_ = msg->waypoints.at(0).twist.twist.linear.x;
   else
     command_linear_velocity_ = 0;
-
+  ROS_WARN("Loading Waypoints");
   pp_.setCurrentWaypoints(msg->waypoints);
   is_waypoint_set_ = true;
+  ROS_WARN("Waypoints loaded");
 }
 
 double convertCurvatureToSteeringAngle(const double &wheel_base, const double &kappa)
